@@ -18,4 +18,5 @@ public class YourCartPage extends WebPage {
     public void clickCheckout() {
         checkoutButton.click();
     }
+
 }

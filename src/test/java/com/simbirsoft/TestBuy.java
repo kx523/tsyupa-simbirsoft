@@ -7,26 +7,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class TestBuy {
     public WebDriver webDriver;
-    public WebDriverWait wait;
     public AuthorizationPage authorizationPage;
 
-    private class Browser extends ChromeBrowser {
-        public Browser() {
-            super();
-        }
-    }
 
     @Before
-    public void setUp() {
-        webDriver = new Browser().webDriver;
-        webDriver.manage().window().maximize();
-        wait = new WebDriverWait(webDriver, 5);
-        WebPage.setDriver(webDriver);
+    public void setUp() throws IOException {
+        loadProperties();
+        setupDriver();
         authorizationPage = new AuthorizationPage();
+        // Открыть ссылку
+        webDriver.get(System.getProperty("site.url"));
     }
 
     // тест - проверка успешной покупки
@@ -38,7 +35,7 @@ public class TestBuy {
         CheckoutOverviewPage checkoutOverviewPage = new CheckoutOverviewPage();
         CheckoutCompletePage checkoutCompletePage = new CheckoutCompletePage();
         // Предусловие: выполнение авторизации с корректными данными
-        authorizationPage.authorization("standard_user", "secret_sauce");
+        authorizationPage.authorization(System.getProperty("user"),System.getProperty("password"));
         // Шаг 1. Добавление первого продукта в корзину
         productsPage.clickToAddToCardButton();
         // Шаг 2. Переход в корзину
@@ -77,6 +74,23 @@ public class TestBuy {
     @Step("Проверка текущего url: {url}")
     public void checkUrl(String url) {
         Assert.assertEquals(url, webDriver.getCurrentUrl());
+    }
+
+    // Читаем конфигурационные файлы в System.properties
+    private void loadProperties() throws IOException {
+        System.getProperties().load(ClassLoader.getSystemResourceAsStream("config.properties"));
+        System.getProperties().load(ClassLoader.getSystemResourceAsStream("user.properties"));
+    }
+
+    private void setupDriver() {
+        // Создание экземпляра драйвера
+        webDriver = new ChromeDriver();
+        // Устанавливаем размер окна браузера, как максимально возможный
+        webDriver.manage().window().maximize();
+        // Установим время ожидания для поиска элементов
+        webDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        // Установить созданный драйвер для поиска в веб-страницах
+        WebPage.setDriver(webDriver);
     }
 
     @After
